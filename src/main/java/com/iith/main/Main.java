@@ -1,13 +1,14 @@
-package com.iith.pubnub;
+package com.iith.main;
 
-import com.google.common.base.Joiner;
+import com.iith.streams.*;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        NumericStream stream = new NumericStream(100000);
+        
         Thread thread = new Thread(() -> {
-            PubNubImpl.start("sub-c-4377ab04-f100-11e3-bffd-02ee2ddab7fe",
-                    "pubnub-market-orders", "symbol");
+            stream.start();
         });
         thread.start();
 
@@ -16,15 +17,22 @@ public class Main {
             String command = scanner.nextLine();
             
             if ("listItems".equals(command)) {                
-                String list = Joiner.on(", ").join(Counter.getItems());
+                String list = stream.getItems();
                 System.out.println(list);
             } else if (command.startsWith("exactCount")) {
                 String item = command.replace("exactCount ", "");
-                long count = Counter.getExact(item);
+                long count = stream.getCounter(item);
                 System.out.println(count);
             } else if (command.startsWith("approxCount")) {
                 String item = command.replace("approxCount ", "");
-                long count = Counter.getExact(item);
+                long count = stream.getCountMin(item);
+                System.out.println(count);
+            } else if (command.startsWith("pause")) {
+                stream.setPaused(true);
+            } else if (command.startsWith("unpause")) {
+                stream.setPaused(false);
+            } else if (command.startsWith("size")) {
+                long count = stream.getSize();
                 System.out.println(count);
             }
         }

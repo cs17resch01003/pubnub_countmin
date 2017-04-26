@@ -2,7 +2,7 @@ package com.iith.countmin;
 
 import java.util.Random;
 
-public class CountMin implements ICountMin {
+public class CountMin implements ICounter {
 
     public static final long PRIME_MODULUS = (1L << 31) - 1;
 
@@ -133,7 +133,7 @@ public class CountMin implements ICountMin {
      * @return 
      */
     @Override
-    public long estimateCount(long item) {
+    public long count(long item) {
         long res = Long.MAX_VALUE;
         for (int i = 0; i < depth; ++i) {
             res = Math.min(res, table[i][hash(item, i)]);
@@ -143,7 +143,7 @@ public class CountMin implements ICountMin {
     }
 
     @Override
-    public long estimateCount(String item) {
+    public long count(String item) {
         long res = Long.MAX_VALUE;
         int[] buckets = Filter.getHashBuckets(item, depth, width);
         
