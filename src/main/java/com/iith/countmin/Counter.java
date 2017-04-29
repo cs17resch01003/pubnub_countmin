@@ -51,4 +51,8 @@ public class Counter implements ICounter {
     public Set<Long> getLongs() {
         return longCounter.keySet();
     }
+    
+    public long size() {
+        return longCounter.size() + stringCounter.size();
+    }
 }

@@ -1,13 +1,16 @@
 package com.iith.streams;
 
+import com.iith.countmin.ConservativeCountMin;
 import com.iith.countmin.CountMin;
 import com.iith.countmin.Counter;
+import com.iith.countmin.ICounter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NumericStream implements IStream {
 
-    private final CountMin countMin = new CountMin(1000, 1000, 1);
+    private final ICounter countMin = new ConservativeCountMin(1000, 1000, 1);
+    // private final CountMin countMin = new CountMin(1000, 1000, 1);
     private final Counter counter = new Counter();
     private final long limit;
     

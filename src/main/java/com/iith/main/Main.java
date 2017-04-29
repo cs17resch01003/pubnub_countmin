@@ -5,7 +5,8 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        NumericStream stream = new NumericStream(100000);
+        NumericStream stream = new NumericStream(1000); //100000
+        // StockPubNub stream = new StockPubNub();
         
         Thread thread = new Thread(() -> {
             stream.start();
