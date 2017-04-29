@@ -8,8 +8,8 @@ import java.util.Random;
 *   Implementation based on "Sketch Algorithms for Estimating Point Queries in NLP"
 *   by Amit Goyal, Hal Daume ́ III and Graham Cormode
 *
+* Logic:  sk[k,h (x)] =  max{sk[k,h (x)],cˆ(x)+c}
 */
-// sk[k,h (x)] =  max{sk[k,h (x)],cˆ(x)+c}
 
 public class ConservativeCountMin implements ICounter {
 
