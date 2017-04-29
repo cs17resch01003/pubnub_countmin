@@ -2,12 +2,15 @@ package com.iith.streams;
 
 import com.google.common.base.Joiner;
 import com.google.gson.JsonObject;
+import com.iith.countmin.ConservativeCountMin;
 import com.iith.countmin.CountMin;
 import com.iith.countmin.Counter;
+import com.iith.countmin.ICounter;
 
 public class StockPubNub extends PubNub implements IStream {
 
-    private final CountMin countMin = new CountMin(5, 5, 1);
+    // private final CountMin countMin = new CountMin(5, 5, 1);
+    private final ICounter countMin = new ConservativeCountMin(5, 5, 1);
     private final Counter counter = new Counter();
     
     public StockPubNub() {

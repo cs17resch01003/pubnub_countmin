@@ -9,4 +9,6 @@ public interface ICounter {
     public long count(long item);
 
     public long count(String item);
+    
+    public long size();
 }

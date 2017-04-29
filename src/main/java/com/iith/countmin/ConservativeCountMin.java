@@ -2,7 +2,16 @@ package com.iith.countmin;
 
 import java.util.Random;
 
-public class CountMin implements ICounter {
+/*
+* Count-Min sketch with conservative update
+*
+*   Implementation based on "Sketch Algorithms for Estimating Point Queries in NLP"
+*   by Amit Goyal, Hal Daume ́ III and Graham Cormode
+*
+*/
+// sk[k,h (x)] =  max{sk[k,h (x)],cˆ(x)+c}
+
+public class ConservativeCountMin implements ICounter {
 
     public static final long PRIME_MODULUS = (1L << 31) - 1;
 
@@ -12,7 +21,7 @@ public class CountMin implements ICounter {
     long size;
     double eps, confidence;
 
-    public CountMin(int depth, int width, int seed) {
+    public ConservativeCountMin(int depth, int width, int seed) {
         this.depth = depth;
         this.width = width;
         
@@ -22,7 +31,7 @@ public class CountMin implements ICounter {
         initTablesWith(depth, width, seed);
     }
 
-    public CountMin(double epsOfTotalCount, double confidence, int seed) {
+    public ConservativeCountMin(double epsOfTotalCount, double confidence, int seed) {
         // 2/w = eps ; w = 2/eps
         // 1/2^depth <= 1-confidence ; depth >= -log2 (1-confidence)
         this.eps = epsOfTotalCount;
@@ -39,13 +48,7 @@ public class CountMin implements ICounter {
         this.hashA = new long[depth];
         
         Random r = new Random(seed);
-        
-        // We're using a linear hash functions
-        // of the form (a*x+b) mod p.
-        // a,b are chosen independently for each hash function.
-        // However we can set b = 0 as all it does is shift the results
-        // without compromising their uniformity or independence with
-        // the other hashes.
+
         for (int i = 0; i < depth; ++i) {
             hashA[i] = r.nextInt(Integer.MAX_VALUE);
         }
@@ -94,15 +97,14 @@ public class CountMin implements ICounter {
     @Override
     public void add(long item, long count) {
         if (count < 0) {
-            // Actually for negative increments we'll need to use the median
-            // instead of minimum, and accuracy will suffer somewhat.
-            // Probably makes sense to add an "allow negative increments"
-            // parameter to constructor.
             throw new IllegalArgumentException("Negative increments not implemented");
         }
         
         for (int i = 0; i < depth; ++i) {
-            table[i][hash(item, i)] += count;
+            long currentCount = table[i][hash(item, i)];
+            long predictedCount = count(item);
+            long max = ((currentCount + count) > predictedCount)?(currentCount + count) : predictedCount;
+            table[i][hash(item, i)] = max;
         }
 
         checkSizeAfterAdd(String.valueOf(item), count);
@@ -111,16 +113,15 @@ public class CountMin implements ICounter {
     @Override
     public void add(String item, long count) {
         if (count < 0) {
-            // Actually for negative increments we'll need to use the median
-            // instead of minimum, and accuracy will suffer somewhat.
-            // Probably makes sense to add an "allow negative increments"
-            // parameter to constructor.
             throw new IllegalArgumentException("Negative increments not implemented");
         }
         
         int[] buckets = Filter.getHashBuckets(item, depth, width);
         for (int i = 0; i < depth; ++i) {
-            table[i][buckets[i]] += count;
+            long currentCount = table[i][buckets[i]];
+            long predictedCount = count(item);
+            long max = ((currentCount + count) > predictedCount)?(currentCount + count) : predictedCount;
+            table[i][buckets[i]] = max;
         }
         
         checkSizeAfterAdd(item, count);
