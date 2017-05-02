@@ -1,5 +1,6 @@
 package com.iith.streams;
 
+import com.iith.countmin.ConservativeCountMin;
 import com.iith.countmin.CountMin;
 import com.iith.countmin.Counter;
 import java.util.logging.Level;
@@ -7,13 +8,22 @@ import java.util.logging.Logger;
 
 public class NumericStream implements IStream {
 
-    private final CountMin countMin = new CountMin(1000, 1000, 1);
+    private final CountMin countMin;
+    private final ConservativeCountMin conservativeCountMin;
     private final Counter counter = new Counter();
     private final long limit;
     
     private boolean paused;
 
-    public NumericStream(long limit) {
+    public NumericStream(long limit, double epsilon, double confidence) {
+        countMin = new CountMin(epsilon, confidence, 1);
+        conservativeCountMin = new ConservativeCountMin(epsilon, confidence, 1);
+        this.limit = limit;
+    }
+    
+    public NumericStream(long limit, int width, int depth) {
+        countMin = new CountMin(depth, width, 1);
+        conservativeCountMin = new ConservativeCountMin(depth, width, 1);
         this.limit = limit;
     }
     
@@ -34,7 +44,13 @@ public class NumericStream implements IStream {
                 long number = Math.round(Math.random() * limit);
                 
                 countMin.add(number, 1);
+                conservativeCountMin.add(number, 1);
                 counter.add(number, 1);
+                
+                if (getSize() == 5000000) {
+                    setPaused(true);
+                    gatherResults();
+                }
             }
             else {
                 try {
@@ -66,5 +82,26 @@ public class NumericStream implements IStream {
     @Override
     public long getSize() {
         return countMin.size();
+    }
+    
+    public void gatherResults() {
+        double epsilon = countMin.getRelativeError();
+        double confidence = countMin.getConfidence();
+        
+        long width = countMin.getWidth();
+        long depth = countMin.getDepth();
+        
+        double mean_error = 0;
+        long failed = 0;
+        for (int i = 0; i < limit; i++) {
+            double error = Math.abs(counter.count(i) - countMin.count(i)) / (double)countMin.size();
+            if (error > epsilon)
+                failed++;
+            mean_error += error;
+        }
+        
+        mean_error = mean_error / (double)limit;
+        
+        System.out.printf("%f, %f, %d, %d, %d, %f, %d\n", epsilon, confidence, width, depth, limit, mean_error, failed);
     }
 }
